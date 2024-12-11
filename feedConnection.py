@@ -2,6 +2,10 @@
 ## CCTV is currently present at my home and needs to be within the same LAN network for access.
 
 import cv2 as cv
+import matplotlib.pyplot as plt
+import torch
+import warnings
+warnings.filterwarnings("ignore")
 
 # Function to access laptop's camera.
 def cameraAccess(feed=0):
@@ -94,3 +98,51 @@ def cameraAccessCCTV(feed):
         cv.destroyAllWindows()
 
 # cameraAccessCCTV(indoorCameraFeed)
+
+# YoloV5n Model
+
+cmap = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [0, 255, 255], [255, 0, 255], [255, 255, 0], [255, 165, 0], [128, 0, 128], [0, 128, 255], [0, 255, 128]]
+def plot_frame(frame,res,confidenceThreshold = 0.6):
+    res = res[res.confidence >= confidenceThreshold]
+    cmapPtr = 0
+    for _,row in res.iterrows():
+        color = cmap[cmapPtr]
+        cmapPtr+=1
+        xmin, ymin, xmax, ymax, cate, conf = row['xmin'],row['ymin'],row['xmax'],row['ymax'],row['name'],row['confidence']
+        [xmin, ymin, xmax, ymax] = [int(i) for i in [xmin, ymin, xmax, ymax]]
+        text = f'{cate}: {conf:0.2f}'
+        frame = cv.rectangle(frame, (xmin,ymin), (xmax,ymax),thickness=2,color=color)
+        frame = cv.putText(frame,text,(xmin,ymin-5),cv.FONT_HERSHEY_SIMPLEX,fontScale = 0.8,color=color,thickness = 2)
+    return frame
+
+model = torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True)
+
+def cameraAccessCCTV_YOLO(feed,confidenceThreshold = 0.6):
+    '''
+    feed: RTSP Link to surveillance device. Need to be present in the same LAN network for access.
+    '''
+    cap = cv.VideoCapture(feed)
+    if not cap.isOpened():
+        print("Camera Access Unavailable.")
+        exit()
+    else:  
+        while True:
+            ret, frame = cap.read()
+        
+            if not ret:
+                print("Frame Unavailable. Exit.")
+                break
+
+            predictions = model(frame).pandas().xyxy[0]
+            framePred = plot_frame(frame.copy(),predictions,confidenceThreshold)
+            
+            cv.imshow('framePred', framePred)
+            if cv.waitKey(1) == ord('q'):
+                break
+
+        cap.release()
+        cv.destroyAllWindows()
+
+        cameraAccessCCTV_YOLO(indoorCameraFeed,confidenceThreshold=0.1)
+
+cameraAccessCCTV_YOLO(feed = indoorCameraFeed,confidenceThreshold = 0.1)
