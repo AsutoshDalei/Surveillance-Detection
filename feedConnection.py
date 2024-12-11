@@ -133,7 +133,16 @@ def cameraAccessCCTV_YOLO(feed,confidenceThreshold = 0.6):
                 print("Frame Unavailable. Exit.")
                 break
 
+            #Face Detection Section
+            grayImg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            faces = face_cascade.detectMultiScale(grayImg, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+            for (x, y, w, h) in faces:
+                cv2.rectangle(image, (x, y), (x+w, y+h), (255, 0, 0), 2)
+
+            #Yolo Section for Object Detection
             predictions = model(frame).pandas().xyxy[0]
+
+            #Frame Generation Section
             framePred = plot_frame(frame.copy(),predictions,confidenceThreshold)
             
             cv.imshow('framePred', framePred)
@@ -143,6 +152,4 @@ def cameraAccessCCTV_YOLO(feed,confidenceThreshold = 0.6):
         cap.release()
         cv.destroyAllWindows()
 
-        cameraAccessCCTV_YOLO(indoorCameraFeed,confidenceThreshold=0.1)
-
-cameraAccessCCTV_YOLO(feed = indoorCameraFeed,confidenceThreshold = 0.1)
+# cameraAccessCCTV_YOLO(feed = indoorCameraFeed,confidenceThreshold = 0.1)
