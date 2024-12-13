@@ -17,7 +17,7 @@ global signed
 
 @st.dialog("Warning: Responsible Use of SurveilAI")
 def agreement():
-    agreementContent = '''
+    agreementContent = ''' :warning:
 By using this platform, you acknowledge:
 
 * :orange[Privacy Compliance:] Ensure your use of surveillance data complies with all privacy laws and regulations.
@@ -26,9 +26,10 @@ By using this platform, you acknowledge:
 * :orange[Data Security:] Protect your account and ensure secure handling of video feeds and alerts.
 '''
     st.markdown(agreementContent)
-    signed = st.checkbox("Proceed only if you understand and agree to these terms.", value=False)
-    return signed
+    st.session_state.signed = st.checkbox("Proceed only if you understand and agree to these terms.", value=False)
 
-# if "agreement" not in st.session_state:
-#     signed = agreement()
+if ("agreement" not in st.session_state) or (st.session_state.signed==False):
+    agreement()
+print(("agreement" not in st.session_state), st.session_state.signed)
+
 
