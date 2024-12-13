@@ -32,30 +32,38 @@ By using this platform, you acknowledge:
 if "agreement" not in st.session_state:
     agreement()
 
-if "userNameState" not in st.session_state:
-    st.session_state.userNameState = False
-if "numFeedState" not in st.session_state:
-    st.session_state.numFeedState = False
+if "userState" not in st.session_state:
+    st.session_state.userState = {'userName':None,'numFeeds':0,'config':False}
 
-def userNameFnx():
-    st.session_state.userNameState = True
-def numFeedFnx():
-    st.session_state.numFeedState = True
 
-def sysConfigFnx():
-    with st.form("sysConfigUser"):
-        st.write("System Confurigation :computer:")
-        userName = st.text_input(label="User Name",value=None,on_change=userNameFnx) 
-        numFeeds = st.slider(label="Number of Camera Feeds",min_value=0,max_value=4,step=1,on_change=numFeedFnx)
+def sysConfig(disableState=False):
+    st.session_state.userState['userName'] = st.text_input(label="User Name",value=None,help='Kindly provide your name.',disabled=disableState) 
+    st.session_state.userState['numFeeds'] = st.slider(label="Number of Camera Feeds (RTSP needed)",min_value=0,max_value=3,step=1, disabled=disableState,
+                                                        help='RTSP (Real-Time Streaming Protocol) is used for streaming media between devices, enabling real-time control over playback.')
+    
+    # st.session_state.feedLinks = {f'feed{i}': for i in range(st.session_state.userState['numFeeds'])}
 
-        submitFlag = not((st.session_state.userNameState) and (st.session_state.numFeedState))
-        submitted = st.form_submit_button("Submit Configuration",disabled=True)
-
+    # for i in range(st.session_state.userState['numFeeds']):
+    #     st.session_state[f'feed{i+1}'] = {}
+    #     # st.session_state.feedLinks[f'feed{i}'] = st.text_input(f"Provide the RTSP link for Camera Feed {i+1}",key=f'feed{i}')
+    #     st.session_state[f'feed{i+1}']['link'] = st.text_input(f"Provide the RTSP link for Camera Feed {i+1}",key=f'feed{i}')
 
 with st.sidebar:
-    st.title("SurveilAI Stats.")
-    if st.button("Click To Configure System", type='primary'):
-        sysConfigFnx()
+    st.title("SurveilAI Stats Platform.")
+    with st.expander("System Configuration"):
+        sysConfig()
+
+    for feedPtr in range(st.session_state.userState['numFeeds']):
+        st.session_state[f'feed{feedPtr+1}'] = {}
+        with st.expander(f"Feed{feedPtr+1} Configuration"):
+            st.session_state[f'feed{feedPtr+1}']['name'] = st.text_input("Feed Name:",'Feed1',key=f'feed{feedPtr+1}Name')
+            st.session_state[f'feed{feedPtr+1}']['Link'] = st.text_input("RTSP Link:",None,key=f'feed{feedPtr+1}Link')
+    
+    st.divider()
+    
+    
+
+
 
 
 
