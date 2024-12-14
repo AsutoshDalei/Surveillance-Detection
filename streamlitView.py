@@ -36,32 +36,25 @@ if "userState" not in st.session_state:
     st.session_state.userState = {'userName':None,'numFeeds':0,'config':False}
 
 
-def sysConfig(disableState=False):
-    st.session_state.userState['userName'] = st.text_input(label="User Name",value=None,help='Kindly provide your name.',disabled=disableState) 
-    st.session_state.userState['numFeeds'] = st.slider(label="Number of Camera Feeds (RTSP needed)",min_value=0,max_value=3,step=1, disabled=disableState,
-                                                        help='RTSP (Real-Time Streaming Protocol) is used for streaming media between devices, enabling real-time control over playback.')
-    
-    # st.session_state.feedLinks = {f'feed{i}': for i in range(st.session_state.userState['numFeeds'])}
-
-    # for i in range(st.session_state.userState['numFeeds']):
-    #     st.session_state[f'feed{i+1}'] = {}
-    #     # st.session_state.feedLinks[f'feed{i}'] = st.text_input(f"Provide the RTSP link for Camera Feed {i+1}",key=f'feed{i}')
-    #     st.session_state[f'feed{i+1}']['link'] = st.text_input(f"Provide the RTSP link for Camera Feed {i+1}",key=f'feed{i}')
-
 with st.sidebar:
     st.title("SurveilAI Stats Platform.")
     with st.expander("System Configuration"):
-        sysConfig()
+        st.session_state.userState['userName'] = st.text_input(label="User Name",value=None,help='Kindly provide your name.') 
+        st.session_state.userState['numFeeds'] = st.slider(label="Number of Camera Feeds (RTSP needed)",min_value=0,max_value=3,step=1,help='RTSP (Real-Time Streaming Protocol) is used for streaming media between devices, enabling real-time control over playback.')
 
     for feedPtr in range(st.session_state.userState['numFeeds']):
-        st.session_state[f'feed{feedPtr+1}'] = {}
+        st.session_state[f'feed{feedPtr+1}'] = {'name':'','link':None}
         with st.expander(f"Feed{feedPtr+1} Configuration"):
-            st.session_state[f'feed{feedPtr+1}']['name'] = st.text_input("Feed Name:",'Feed1',key=f'feed{feedPtr+1}Name')
-            st.session_state[f'feed{feedPtr+1}']['Link'] = st.text_input("RTSP Link:",None,key=f'feed{feedPtr+1}Link')
+            st.session_state[f'feed{feedPtr+1}']['name'] = st.text_input("Feed Name:",f'Feed{feedPtr+1}',key=f'feed{feedPtr+1}Name')
+            st.session_state[f'feed{feedPtr+1}']['link'] = st.text_input("RTSP Link:",None,key=f'feed{feedPtr+1}Link')
     
     st.divider()
-    
-    
+    # st.write(st.session_state.temp)
+
+# st.write([st.session_state[f'feed{feedPtr+1}']['name']] for feedPtr in range(st.session_state.userState['numFeeds']))
+st.write([st.session_state[f'feed{feedPtr+1}']['name']] for feedPtr in range(st.session_state.userState['numFeeds']))
+# tabs = st.tabs([st.session_state[f'feed{feedPtr+1}']['name']] for feedPtr in range(st.session_state.userState['numFeeds']))
+
 
 
 
