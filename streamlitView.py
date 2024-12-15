@@ -5,6 +5,35 @@ import warnings
 warnings.filterwarnings("ignore")
 import streamlit as st
 
+# FEED: rtsp://NELTJRSl:8z3Y969kgO6sGTpX@192.168.1.216:554/live/ch0
+
+# Vision Functions
+def cameraAccessCCTV(feed,feedname, stElement):
+    '''
+    feed: RTSP Link to surveillance device. Need to be present in the same LAN network for access.
+    '''
+    stopbutton = stElement.button("Stop Feed",help='Click to stop the feed.')
+    framePlaceholder = stElement.empty()
+    # framePlaceholder.image()
+
+
+    cap = cv.VideoCapture(feed)
+    if not cap.isOpened():
+        # print("Camera Access Unavailable.")
+        stElement.error("Camera Access Unavailable.", icon="🚨")
+        exit()
+    else:  
+        while cap.isOpened() and not stopbutton:
+            ret, frame = cap.read()
+            if not ret:
+                # print("Frame Unavailable. Exit.")
+                stElement.error("Frame Unavailable.", icon="🚨")
+                break
+            gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+            framePlaceholder.image(frame)
+        
+        cap.release()
+
 # Extras
 RTSPDEFINATION = 'RTSP (Real-Time Streaming Protocol) is used for streaming media between devices, enabling real-time control over playback.'
 
@@ -44,8 +73,7 @@ def disableFnx(status):
 with st.sidebar:
     st.title("SurveilAI Stats Platform.")
     with st.expander("System Configuration"):
-        st.session_state.userState['userName'] = st.text_input(label="User Name",value=None,help='Kindly provide your name.', disabled=st.session_state.disableConfig) 
-        # st.session_state.userState['numFeeds'] = st.slider(label="Number of Camera Feeds (RTSP needed)",min_value=0,max_value=3,step=1,help='RTSP (Real-Time Streaming Protocol) is used for streaming media between devices, enabling real-time control over playback.')
+        st.session_state.userState['userName'] = st.text_input(label="User Name",value=None,help='Kindly provide your name.', disabled=st.session_state.disableConfig, placeholder='', max_chars= 50) 
         st.session_state.userState['numFeeds'] = st.segmented_control(label="Number of Camera Feeds (RTSP needed)",options=[0,1,2,3], default=0,help=RTSPDEFINATION, disabled=st.session_state.disableConfig)
    
     for feedPtr in range(st.session_state.userState['numFeeds']):
@@ -55,6 +83,8 @@ with st.sidebar:
             st.session_state[f'feed{feedPtr+1}']['link'] = st.text_input("RTSP Link:",None,key=f'feed{feedPtr+1}Link', disabled=st.session_state.disableConfig)
 
     st.divider()
+    with st.expander("System Health"):
+        st.write("Work pending")
     st.divider()
     sideBarcol1, sideBarcol2 = st.columns(2)
     with sideBarcol1:
@@ -72,17 +102,26 @@ with st.sidebar:
 st.title("SurveilAI Platform")
 st.markdown("Empowering Security with :red[Real-time Object Detection] and :blue[Intelligent Surveillance].")
 
-if st.session_state.userState['userName'] != None:
-    # st.caption(f"Hello {st.session_state.userState['userName']}")
-    st.markdown(f"*Hello {st.session_state.userState['userName']}*")
+# Seems Unnecessary
+# if st.session_state.userState['userName'] != None:
+#     st.markdown(f"*For {st.session_state.userState['userName']}.*")
 st.divider()
-
 
 if st.session_state.userState['numFeeds'] > 0:
     tabNames = []
     for feedPtr in range(st.session_state.userState['numFeeds']):
         tabNames.append(st.session_state[f'feed{feedPtr+1}']['name'])
     tabs = st.tabs(tabNames)
+
+    for feedTab,nameTab,feedPtr in zip(tabs,tabNames,range(st.session_state.userState['numFeeds'])):
+        feedTab.subheader(nameTab)
+        feedLink = st.session_state[f'feed{feedPtr+1}']['link']
+
+        cameraAccessCCTV(feed=feedLink, feedname=nameTab, stElement=feedTab)
+
+
+
+
 
 else:
     st.info('System Configuration Needed.', icon="ℹ️")
