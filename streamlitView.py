@@ -32,8 +32,25 @@ def cameraAccessCCTV(feed,feedname, stElement):
                 break
             gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
             framePlaceholder.image(frame)
-        
         cap.release()
+
+def cameraAccessMultiFeed(feeds,feednames,stElems,elemNums):
+    feedMap,stMap,stButton,frameHolder = {},{},{},{}
+    for feed,stElem,elemNum in zip(feeds,stElems,elemNums):
+        feedMap[f'feed{elemNum}'] = cv.VideoCapture(feed)
+        if not feedMap[f'feed{elemNum}'].isOpened():
+            stMap[f'feed{elemNum}'].error("Camera Access Unavailable", icon="🚨")
+        else:
+            stButton[f'feed{elemNum}'] = stElem.button("Stop Feed",help='Click to stop the feed.')
+            frameHolder[f'feed{elemNum}'] = stElem.empty()
+  
+    while resetButton != True:
+        for elemNum in elemNums:
+            if feedMap[f'feed{elemNum}'].isOpened() and not stButton[f'feed{elemNum}']:
+                ret, frame = feedMap[f'feed{elemNum}'].read()
+
+            
+
 
 # Extras
 RTSPDEFINATION = 'RTSP (Real-Time Streaming Protocol) is used for streaming media between devices, enabling real-time control over playback.'
@@ -89,13 +106,14 @@ with st.sidebar:
     st.divider()
     sideBarcol1, sideBarcol2 = st.columns(2)
     with sideBarcol1:
-        if st.button("Submit Setup", help="Click to submit configurations."):
+        submitButton = st.button("Submit Setup", help="Click to submit configurations.")
+        if submitButton:
             disableFnx(True)
             st.success('Setup', icon="✅")
             
-
     with sideBarcol2:
-        if st.button("Reset Setup", type = 'primary', help='Click to reset configurations.'):
+        resetButton = st.button("Reset Setup", type = 'primary', help='Click to reset configurations.')
+        if resetButton:
             disableFnx(False)
             st.rerun()
 
@@ -103,12 +121,9 @@ with st.sidebar:
 st.title("SurveilAI Platform")
 st.markdown("Empowering Security with :red[Real-time Object Detection] and :blue[Intelligent Surveillance].")
 
-# Seems Unnecessary
-# if st.session_state.userState['userName'] != None:
-#     st.markdown(f"*For {st.session_state.userState['userName']}.*")
 st.divider()
 
-if st.session_state.userState['numFeeds'] > 0:
+if (submitButton == True) and (st.session_state.userState['numFeeds'] > 0):
     tabNames = []
     for feedPtr in range(st.session_state.userState['numFeeds']):
         tabNames.append(st.session_state[f'feed{feedPtr+1}']['name'])
