@@ -8,6 +8,7 @@ import streamlit as st
 # FEED: rtsp://NELTJRSl:8z3Y969kgO6sGTpX@192.168.1.216:554/live/ch0
 
 # Vision Functions
+## Need to make this of multi feeds
 def cameraAccessCCTV(feed,feedname, stElement):
     '''
     feed: RTSP Link to surveillance device. Need to be present in the same LAN network for access.
@@ -118,9 +119,6 @@ if st.session_state.userState['numFeeds'] > 0:
         feedLink = st.session_state[f'feed{feedPtr+1}']['link']
 
         cameraAccessCCTV(feed=feedLink, feedname=nameTab, stElement=feedTab)
-
-
-
 
 
 else:
