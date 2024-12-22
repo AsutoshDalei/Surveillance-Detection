@@ -5,50 +5,26 @@ import warnings
 warnings.filterwarnings("ignore")
 import streamlit as st
 
-# FEED: rtsp://NELTJRSl:8z3Y969kgO6sGTpX@192.168.1.216:554/live/ch0
-# FEED2: rtsp://NELTJRSl:8z3Y969kgO6sGTpX@192.168.1.216:554/live/ch0
+# FEED_out: rtsp://HtiPNx9P:fy4YmtREZnzy2bJE@192.168.1.215:554/live/ch0
+# FEED_in: rtsp://NELTJRSl:8z3Y969kgO6sGTpX@192.168.1.216:554/live/ch0
 
 # Vision Functions
-## Need to make this of multi feeds
-def cameraAccessCCTV(feed,feedname, stElement):
+def cameraAccessMultiFeed(feeds,feednames,stElems,elemNums):
     '''
     feed: RTSP Link to surveillance device. Need to be present in the same LAN network for access.
     '''
-    stopbutton = stElement.button("Stop Feed",help='Click to stop the feed.')
-    framePlaceholder = stElement.empty()
-    # framePlaceholder.image()
-
-
-    cap = cv.VideoCapture(feed)
-    if not cap.isOpened():
-        # print("Camera Access Unavailable.")
-        stElement.error("Camera Access Unavailable.", icon="🚨")
-        exit()
-    else:  
-        while cap.isOpened() and not stopbutton:
-            ret, frame = cap.read()
-            if not ret:
-                # print("Frame Unavailable. Exit.")
-                stElement.error("Frame Unavailable.", icon="🚨")
-                break
-            gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-            framePlaceholder.image(frame)
-        cap.release()
-
-def cameraAccessMultiFeed(feeds,feednames,stElems,elemNums):
     feedMap,stMap,stButton,frameHolder = {},{},{},{}
     for feed,stElem,elemNum in zip(feeds,stElems,range(elemNums)):
         feedMap[f'feed{elemNum}'] = cv.VideoCapture(feed)
-        print(elemNum)
         if not feedMap[f'feed{elemNum}'].isOpened():
             stMap[f'feed{elemNum}'].error("Camera Access Unavailable", icon="🚨")
         else:
-            stButton[f'feed{elemNum}'] = stElem.button("Stop Feed",help='Click to stop the feed.',key=f'feed{elemNum}')
+            stButton[f'feed{elemNum}'] = stElem.button("Stop Feed",help='Click to stop the feed.',key=f'feed{elemNum}Bt')
             frameHolder[f'feed{elemNum}'] = stElem.empty()
   
     while resetButton != True:
         for elemNum in range(elemNums):
-            if feedMap[f'feed{elemNum}'].isOpened() and not stButton[f'feed{elemNum}']:
+            if (feedMap[f'feed{elemNum}'].isOpened()) and (not stButton[f'feed{elemNum}']):
                 ret, frame = feedMap[f'feed{elemNum}'].read()
                 if not ret:
                     stElem[f'feed{elemNum}'].error("Frame Unavailable.", icon="🚨")
