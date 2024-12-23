@@ -8,12 +8,38 @@ import streamlit as st
 # FEED_out: rtsp://HtiPNx9P:fy4YmtREZnzy2bJE@192.168.1.215:554/live/ch0
 # FEED_in: rtsp://NELTJRSl:8z3Y969kgO6sGTpX@192.168.1.216:554/live/ch0
 
+# Image Processing Functions
+cmap = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [0, 255, 255], [255, 0, 255], [255, 255, 0], [255, 165, 0], [128, 0, 128], [0, 128, 255], [0, 255, 128]]
+def plot_frame(frame,res,confidenceThreshold = 0.6):
+    res = res[res.confidence >= confidenceThreshold]
+    cmapPtr = 0
+    for _,row in res.iterrows():
+        color = cmap[cmapPtr]
+        cmapPtr+=1
+        xmin, ymin, xmax, ymax, cate, conf = row['xmin'],row['ymin'],row['xmax'],row['ymax'],row['name'],row['confidence']
+        [xmin, ymin, xmax, ymax] = [int(i) for i in [xmin, ymin, xmax, ymax]]
+        # c = [255,0,0]
+        text = f'{cate}: {conf:0.2f}'
+        frame = cv.rectangle(frame, (xmin,ymin), (xmax,ymax),thickness=2,color=color)
+        frame = cv.putText(frame,text,(xmin,ymin-5),cv.FONT_HERSHEY_SIMPLEX,fontScale = 0.8,color=color,thickness = 2)
+    return frame
+
+
 # Prediction Engine
+@st.cache_resource
 def fetchEngine():
     model = torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True)
+    return model
 
-def predictionEngine(frame):
-    pass
+model = fetchEngine()
+
+
+
+def predictionEngine(frame,confidenceThreshold = 0.6):
+    predictions = model(frame).pandas().xyxy[0]
+    framePred = plot_frame(frame.copy(),predictions,confidenceThreshold)
+    return framePred
+
 
 
 
@@ -40,7 +66,12 @@ def cameraAccessMultiFeed(feeds,feednames,stElems,elemNums):
                     break
                 gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
                 frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
-                frameHolder[f'feed{elemNum}'].image(frame)
+                # frameHolder[f'feed{elemNum}'].image(frame)
+
+                # After Prediction.
+                framePred = predictionEngine(frame)
+                frameHolder[f'feed{elemNum}'].image(framePred)
+
 
     for elemNum in range(elemNums):
         feedMap[f'feed{elemNum}'].release()
