@@ -1,12 +1,21 @@
 import cv2 as cv
 import matplotlib.pyplot as plt
-# import torch
+import torch
 import warnings
 warnings.filterwarnings("ignore")
 import streamlit as st
 
 # FEED_out: rtsp://HtiPNx9P:fy4YmtREZnzy2bJE@192.168.1.215:554/live/ch0
 # FEED_in: rtsp://NELTJRSl:8z3Y969kgO6sGTpX@192.168.1.216:554/live/ch0
+
+# Prediction Engine
+def fetchEngine():
+    model = torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True)
+
+def predictionEngine(frame):
+    pass
+
+
 
 # Vision Functions
 def cameraAccessMultiFeed(feeds,feednames,stElems,elemNums):
@@ -30,6 +39,7 @@ def cameraAccessMultiFeed(feeds,feednames,stElems,elemNums):
                     stElem[f'feed{elemNum}'].error("Frame Unavailable.", icon="🚨")
                     break
                 gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+                frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
                 frameHolder[f'feed{elemNum}'].image(frame)
 
     for elemNum in range(elemNums):
@@ -111,15 +121,7 @@ st.divider()
 if (submitButton == True) and (st.session_state.userState['numFeeds'] > 0):
     tabNames = [st.session_state[f'feed{feedPtr+1}']['name'] for feedPtr in range(st.session_state.userState['numFeeds'])]
     feedLinks = [st.session_state[f'feed{feedPtr+1}']['link'] for feedPtr in range(st.session_state.userState['numFeeds'])]
-    # for feedPtr in range(st.session_state.userState['numFeeds']):
-    #     tabNames.append(st.session_state[f'feed{feedPtr+1}']['name'])
     tabs = st.tabs(tabNames)
-
-    # for feedTab,nameTab,feedPtr in zip(tabs,tabNames,range(st.session_state.userState['numFeeds'])):
-    #     feedTab.subheader(nameTab)
-    #     feedLink = st.session_state[f'feed{feedPtr+1}']['link']
-
-    #     # cameraAccessCCTV(feed=feedLink, feedname=nameTab, stElement=feedTab)
 
     cameraAccessMultiFeed(feeds=feedLinks,feednames=tabNames,stElems=tabs,elemNums=st.session_state.userState['numFeeds'])
 
