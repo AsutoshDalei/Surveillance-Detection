@@ -27,20 +27,19 @@ def plot_frame(frame,res,confidenceThreshold = 0.6):
 
 # Prediction Engine
 @st.cache_resource
-def fetchEngine():
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True)
+def fetchEngine(modelSetup = 'yolov5n'):
+    modelMap = {
+        'yolov5n':torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True),
+        'yolov5s':torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+                }
+    model = modelMap[modelSetup]
     return model
-
-model = fetchEngine()
-
 
 
 def predictionEngine(frame,confidenceThreshold = 0.6):
     predictions = model(frame).pandas().xyxy[0]
     framePred = plot_frame(frame.copy(),predictions,confidenceThreshold)
     return framePred
-
-
 
 
 # Vision Functions
@@ -104,7 +103,7 @@ if "agreement" not in st.session_state:
     agreement()
 
 if "userState" not in st.session_state:
-    st.session_state.userState = {'userName':None,'numFeeds':0,'config':False}
+    st.session_state.userState = {'userName':None,'numFeeds':0,'modelSetup':'yolov5n'}
 
 if "disableConfig" not in st.session_state:
     st.session_state.disableConfig = False
@@ -119,6 +118,7 @@ with st.sidebar:
     with st.expander("System Configuration"):
         st.session_state.userState['userName'] = st.text_input(label="User Name",value=None,help='Kindly provide your name.', disabled=st.session_state.disableConfig, placeholder='', max_chars= 50) 
         st.session_state.userState['numFeeds'] = st.segmented_control(label="Number of Camera Feeds (RTSP needed)",options=[0,1,2,3], default=0,help=RTSPDEFINATION, disabled=st.session_state.disableConfig)
+        st.session_state.userState['modelSetup'] = st.selectbox(label='Select Model')
    
     for feedPtr in range(st.session_state.userState['numFeeds']):
         st.session_state[f'feed{feedPtr+1}'] = {'name':'','link':None}
