@@ -27,10 +27,10 @@ def plot_frame(frame,res,confidenceThreshold = 0.6):
 
 # Prediction Engine
 @st.cache_resource
-def fetchEngine(modelSetup = 'yolov5n'):
+def fetchEngine(modelSetup = 'YOLOv5 nano'):
     modelMap = {
-        'yolov5n':torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True),
-        'yolov5s':torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+        'YOLOv5 nano':torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True),
+        'YOLOv5 small':torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
                 }
     model = modelMap[modelSetup]
     return model
@@ -118,7 +118,7 @@ with st.sidebar:
     with st.expander("System Configuration"):
         st.session_state.userState['userName'] = st.text_input(label="User Name",value=None,help='Kindly provide your name.', disabled=st.session_state.disableConfig, placeholder='', max_chars= 50) 
         st.session_state.userState['numFeeds'] = st.segmented_control(label="Number of Camera Feeds (RTSP needed)",options=[0,1,2,3], default=0,help=RTSPDEFINATION, disabled=st.session_state.disableConfig)
-        st.session_state.userState['modelSetup'] = st.selectbox(label='Select Model')
+        st.session_state.userState['modelSetup'] = st.selectbox(label='Select Model', options=['YOLOv5 nano','YOLOv5 small'],disabled=st.session_state.disableConfig)
    
     for feedPtr in range(st.session_state.userState['numFeeds']):
         st.session_state[f'feed{feedPtr+1}'] = {'name':'','link':None}
@@ -134,7 +134,9 @@ with st.sidebar:
     with sideBarcol1:
         submitButton = st.button("Submit Setup", help="Click to submit configurations.")
         if submitButton:
-            disableFnx(True)
+            with st.spinner("Setting Up"):
+                disableFnx(True)
+                model = fetchEngine(modelSetup=st.session_state.userState['modelSetup'])
             st.success('Setup', icon="✅")
             
     with sideBarcol2:
