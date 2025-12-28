@@ -1,0 +1,15 @@
+.git
+.gitignore
+.ipynb_checkpoints
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+*.pt
+*.md
+README.md
+docker-compose.yml
+Dockerfile
+.dockerignore
+

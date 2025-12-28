@@ -25,6 +25,73 @@ RTSP is used to stream live video footage from CCTV cameras into the application
 ### Streamlit
 Streamlit is being used to build the user-friendly, interactive interface for SurveilAI. It allows for easy deployment of the object detection system, providing users with real-time video streams, with object annotations, directly in their web browser.
 
+## Docker Deployment
+
+SurveilAI can be easily deployed using Docker, ensuring consistent behavior across different environments.
+
+### Prerequisites
+
+- Docker installed on your system ([Install Docker](https://docs.docker.com/get-docker/))
+- Docker Compose (optional, for easier deployment)
+
+### Building the Docker Image
+
+Build the Docker image from the project root directory:
+
+```bash
+docker build -t surveillance-detection .
+```
+
+### Running with Docker
+
+Run the container and map port 8501 to access the Streamlit interface:
+
+```bash
+docker run -p 8501:8501 surveillance-detection
+```
+
+The application will be available at `http://localhost:8501` in your web browser.
+
+### Running with Docker Compose
+
+For easier deployment, use Docker Compose:
+
+```bash
+docker-compose up
+```
+
+To run in detached mode (background):
+
+```bash
+docker-compose up -d
+```
+
+To stop the container:
+
+```bash
+docker-compose down
+```
+
+### RTSP Feed Configuration
+
+**Important**: When running in Docker, ensure your RTSP camera feeds are accessible from the container:
+
+- If your cameras are on the same network as the Docker host, use the host's IP address in your RTSP URLs
+- For cameras on the Docker host network, you may need to use `--network=host` mode:
+  ```bash
+  docker run --network=host surveillance-detection
+  ```
+- Note: `--network=host` is not available on Docker Desktop for Mac/Windows. In these cases, use the host machine's IP address instead of `localhost` in RTSP URLs
+
+### Port Information
+
+- **Default Port**: 8501 (Streamlit default)
+- The application listens on `0.0.0.0:8501` inside the container to accept connections from outside
+
+### Environment Variables
+
+Currently, no environment variables are required. RTSP feed credentials and configuration are handled through the Streamlit web interface.
+
 ## Future Enhancements
 
 - **Streamlit Interface Development**: Currently under development, the Streamlit app will eventually provide users with an intuitive, interactive dashboard for monitoring live video feeds and viewing detected objects in real-time. The goal is to offer features like user authentication, customizable detection thresholds, and the ability to handle multiple video feeds simultaneously.

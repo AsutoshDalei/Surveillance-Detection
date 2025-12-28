@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  surveillance-detection:
+    build: .
+    container_name: surveillance-detection
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+    # Uncomment the following line if you need host network access for RTSP feeds
+    # network_mode: host
+
